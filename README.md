@@ -75,17 +75,9 @@ Before you begin, ensure you have the following installed:
 
 ## 🚀 Installation & Setup
 
-### Step 1: Download the Project
-
-#### Option A: Download from v0
-1. In the v0 interface, click the **three dots (⋮)** in the top-right corner
-2. Select **"Download ZIP"**
-3. Extract the ZIP file to your desired location
-4. Rename the folder to `ai-soil-health-monitor`
-
-#### Option B: Clone from GitHub (if pushed)
+#### Step 1: Clone from GitHub
 \`\`\`bash
-git clone <your-repo-url>
+git clone https://github.com/haileznabu/ai-soil-health-monitor.git
 cd ai-soil-health-monitor
 \`\`\`
 
@@ -160,22 +152,6 @@ NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
 4. Copy the contents of `scripts/001_create_tables.sql` from the project
 5. Paste into the SQL editor and click **Run**
 6. Repeat for `scripts/002_create_profile_trigger.sql`
-
-#### Option B: Using Supabase CLI (Advanced)
-
-\`\`\`bash
-# Install Supabase CLI
-npm install -g supabase
-
-# Login to Supabase
-supabase login
-
-# Link to your project
-supabase link --project-ref your-project-ref
-
-# Run migrations
-supabase db push
-\`\`\`
 
 ### Step 7: Verify Database Setup
 
