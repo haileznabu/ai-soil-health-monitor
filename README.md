@@ -153,6 +153,22 @@ NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
 5. Paste into the SQL editor and click **Run**
 6. Repeat for `scripts/002_create_profile_trigger.sql`
 
+#### Option B: Using Supabase CLI (Advanced)
+
+\`\`\`bash
+# Install Supabase CLI
+npm install -g supabase
+
+# Login to Supabase
+supabase login
+
+# Link to your project
+supabase link --project-ref your-project-ref
+
+# Run migrations
+supabase db push
+\`\`\`
+
 ### Step 7: Verify Database Setup
 
 1. In Supabase Dashboard, go to **Table Editor**
@@ -441,6 +457,58 @@ Update these for production:
 3. Click on an alert to see details
 4. Mark as acknowledged or resolved
 
+## ❓ FAQ
+
+### Q: Do I need to pay for Supabase?
+**A:** No, Supabase has a generous free tier that's perfect for this project. You only need to upgrade if you exceed the free tier limits.
+
+### Q: Can I use a different AI provider instead of Claude?
+**A:** Yes! The AI analysis is modular. You can modify `lib/ai/analyze-soil-health.ts` to use OpenAI, Google Gemini, or any other AI provider.
+
+### Q: How do I get satellite imagery?
+**A:** You can use free sources like:
+- NASA Earthdata
+- Sentinel Hub
+- Google Earth Engine
+- Landsat (USGS)
+
+### Q: Can I deploy this for free?
+**A:** Yes! You can deploy on Vercel's free tier, use Supabase's free tier, and the AI Gateway provides free access to Claude AI.
+
+### Q: Is this production-ready?
+**A:** This is a hackathon MVP. For production use, you should add:
+- Comprehensive error handling
+- Rate limiting
+- Monitoring and logging
+- Automated testing
+- Data backup strategies
+
+### Q: Can I use this for my own land monitoring project?
+**A:** This project is MIT licensed, so you're free to use, modify, and distribute it.
+
+## 🗺️ Roadmap
+
+### Version 1.1 (Planned)
+- [ ] Real-time satellite imagery integration with NASA/ESA APIs
+- [ ] Advanced GIS mapping with drawing tools
+- [ ] Export reports as PDF
+- [ ] Enhanced data visualizations with time-series charts
+- [ ] Batch analysis for multiple land areas
+
+### Version 1.2 (Planned)
+- [ ] Multi-language support (English, Swahili, French)
+- [ ] Team collaboration features
+- [ ] IoT sensor integration for real-time soil data
+- [ ] Mobile app (React Native)
+- [ ] Offline mode for field work
+
+### Version 2.0 (Future)
+- [ ] Machine learning model training on custom datasets
+- [ ] Predictive analytics for land degradation
+- [ ] Integration with government land registries
+- [ ] Community marketplace for restoration services
+- [ ] Blockchain-based carbon credit tracking
+
 ## 🤝 Contributing
 
 This project was built for the Land ReGen Hackathon 2025. Contributions are welcome!
@@ -463,9 +531,9 @@ MIT License - feel free to use this project for your own purposes.
 ## 📞 Support
 
 For issues or questions:
-- Open an issue on GitHub
-- Contact the development team
-- Check the troubleshooting section above
+- Open an issue on [GitHub](https://github.com/haileznabu/ai-soil-health-monitor/issues)
+- Check the [troubleshooting section](#-troubleshooting)
+- Review the [FAQ](#-faq)
 
 ---
 

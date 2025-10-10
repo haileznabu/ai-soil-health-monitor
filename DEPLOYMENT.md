@@ -1,10 +1,23 @@
 # Deployment Guide - AI Soil Health Monitor
 
+This guide will help you deploy your application to production.
+
+## 🚀 Deploy to Vercel (Recommended)
+
+Vercel is the easiest way to deploy Next.js applications.
+
+### Prerequisites
+
+- GitHub account
+- Vercel account (sign up at [vercel.com](https://vercel.com))
+- Your code pushed to a GitHub repository
+
 ### Step 1: Push to GitHub
 
+If you haven't already:
 
 \`\`\`bash
-# Initialize git
+# Initialize git (if not already done)
 git init
 
 # Add all files
