@@ -43,15 +43,13 @@ export function HealthDataCard({ data }: HealthDataCardProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {data.satellite_image_url && (
-          <div className="relative w-full h-32 rounded-lg overflow-hidden border">
-            <img
-              src={data.satellite_image_url || "/placeholder.svg"}
-              alt="Satellite imagery"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
+        <div className="relative w-full h-32 rounded-lg overflow-hidden border bg-muted">
+          <img
+            src={data.satellite_image_url || "/placeholder.svg"}
+            alt="Satellite imagery"
+            className="w-full h-full object-cover"
+          />
+        </div>
 
         <div className="space-y-3">
           {data.degradation_level !== null && (

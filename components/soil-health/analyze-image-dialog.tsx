@@ -33,6 +33,14 @@ export function AnalyzeImageDialog({ landAreas }: AnalyzeImageDialogProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const router = useRouter()
 
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(new Error("Failed to read file"))
+      reader.readAsDataURL(file)
+    })
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -52,6 +60,9 @@ export function AnalyzeImageDialog({ landAreas }: AnalyzeImageDialogProps) {
     setLoading(true)
 
     try {
+      // Ensure we always send a base64 data URL, avoiding race with FileReader
+      const imageBase64: string = imagePreview || (await fileToDataUrl(imageFile))
+
       const response = await fetch("/api/analyze-soil", {
         method: "POST",
         headers: {
@@ -59,7 +70,7 @@ export function AnalyzeImageDialog({ landAreas }: AnalyzeImageDialogProps) {
         },
         body: JSON.stringify({
           land_area_id: selectedLandArea,
-          image_base64: imagePreview,
+          image_base64: imageBase64,
         }),
       })
 
