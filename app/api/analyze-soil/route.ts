@@ -63,7 +63,8 @@ export async function POST(request: Request) {
         organic_matter: analysis.organic_matter,
         temperature: analysis.temperature,
         ai_analysis_summary: analysis.ai_analysis_summary,
-        satellite_image_url: image_base64 ? "data:image/jpeg;base64,..." : null,
+        // Store the actual provided image data URL so the UI can render it
+        satellite_image_url: typeof image_base64 === "string" ? image_base64 : null,
       })
       .select()
       .single()
