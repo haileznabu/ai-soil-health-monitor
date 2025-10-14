@@ -1,8 +1,10 @@
+"use client"
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
+import { useLoadingOptional } from '@/components/ui/loading-provider'
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -47,11 +49,32 @@ function Button({
     asChild?: boolean
   }) {
   const Comp = asChild ? Slot : 'button'
+  const loading = useLoadingOptional()
+
+  const onClick = React.useCallback<React.MouseEventHandler<HTMLButtonElement>>(
+    (e) => {
+      // If consumer provided onClick, call it and respect async completion
+      const maybePromise = props.onClick?.(e)
+      // Start global loading immediately for perceived responsiveness
+      loading?.start()
+      if (maybePromise && typeof (maybePromise as any).then === 'function') {
+        ;(maybePromise as Promise<unknown>)
+          .catch(() => {})
+          .finally(() => loading?.stop())
+      } else {
+        // Fallback: stop shortly after if no async detected
+        setTimeout(() => loading?.stop(), 300)
+      }
+    },
+    // We intentionally depend on props.onClick and loading
+    [props.onClick, loading]
+  )
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      onClick={onClick}
       {...props}
     />
   )
