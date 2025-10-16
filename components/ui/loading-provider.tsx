@@ -58,10 +58,13 @@ function useFakeProgress(active: boolean) {
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const [activeCount, setActiveCount] = useState(0)
   const [manualDeterminate, setManualDeterminate] = useState(false)
+  const [instrumentationGeneration, setInstrumentationGeneration] = useState(0)
   const isVisible = activeCount > 0
   const { progress, complete } = useFakeProgress(isVisible && !manualDeterminate)
   const pathname = usePathname()
   const router = useRouter()
+  // Hard safety timeout to avoid the loader sticking around forever
+  const fallbackTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const start = useCallback((opts?: { determinate?: boolean }) => {
     setManualDeterminate(Boolean(opts?.determinate))
@@ -75,6 +78,33 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     , 350)
     return () => clearTimeout(timeout)
   }, [complete])
+
+  // Enforce a maximum visible duration of 3 seconds per activation window
+  useEffect(() => {
+    // When the overlay becomes visible, start a fallback timer
+    if (isVisible) {
+      if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current)
+      fallbackTimerRef.current = setTimeout(() => {
+        // Force-hide and reset state to guarantee we never exceed 3s
+        setActiveCount(0)
+        setManualDeterminate(false)
+        // Reset fetch instrumentation to clear any stuck pending counters
+        setInstrumentationGeneration((g) => g + 1)
+      }, 3000)
+      return () => {
+        if (fallbackTimerRef.current) {
+          clearTimeout(fallbackTimerRef.current)
+          fallbackTimerRef.current = null
+        }
+      }
+    }
+
+    // If not visible, ensure no stray timers remain
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current)
+      fallbackTimerRef.current = null
+    }
+  }, [isVisible])
 
   // Auto-stop when route path changes (navigation completed)
   const lastPathRef = useRef(pathname)
@@ -105,7 +135,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
   }), [isVisible, manualDeterminate, progress, start, stop, withLoading])
 
   // Enable auto instrumentation for fetch
-  useFetchInstrumentation(start, stop)
+  useFetchInstrumentation(start, stop, instrumentationGeneration)
 
   return (
     <LoadingContext.Provider value={value}>
@@ -127,7 +157,7 @@ export function useLoadingOptional() {
 
 // Instrument global fetch to show the overlay while network requests are in-flight
 // Only active while within this provider's lifecycle
-function useFetchInstrumentation(start: () => void, stop: () => void) {
+function useFetchInstrumentation(start: () => void, stop: () => void, generation: number) {
   useEffect(() => {
     if (typeof window === 'undefined' || !window.fetch) return
     const originalFetch = window.fetch.bind(window)
@@ -157,5 +187,5 @@ function useFetchInstrumentation(start: () => void, stop: () => void) {
       isUnmounted = true
       globalObj.fetch = previous
     }
-  }, [start, stop])
+  }, [start, stop, generation])
 }
