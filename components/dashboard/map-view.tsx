@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin } from "lucide-react"
 
@@ -14,6 +15,91 @@ interface MapViewProps {
 }
 
 export function MapView({ landAreas = [] }: MapViewProps) {
+  const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<any>(null)
+  const markersLayerRef = useRef<any>(null)
+
+  // Initialize Leaflet map once on client
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      const L = (await import("leaflet")).default as any
+      if (!isMounted || mapRef.current || !mapContainerRef.current) return
+
+      const map = L.map(mapContainerRef.current, {
+        center: [0, 0],
+        zoom: 2,
+        worldCopyJump: true,
+      })
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors",
+        maxZoom: 19,
+      }).addTo(map)
+
+      mapRef.current = map
+      markersLayerRef.current = L.layerGroup().addTo(map)
+    })()
+
+    return () => {
+      isMounted = false
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+      markersLayerRef.current = null
+    }
+  }, [])
+
+  // Sync markers with provided land areas
+  useEffect(() => {
+    const syncMarkers = async () => {
+      const map = mapRef.current
+      const markersLayer = markersLayerRef.current
+      if (!map || !markersLayer) return
+
+      const L = (await import("leaflet")).default as any
+
+      markersLayer.clearLayers()
+
+      const validPoints = landAreas.filter(
+        (a) =>
+          typeof a.location_lat === "number" &&
+          !Number.isNaN(a.location_lat) &&
+          typeof a.location_lng === "number" &&
+          !Number.isNaN(a.location_lng),
+      )
+
+      validPoints.forEach((area) => {
+        const color = area.degradation_level != null && area.degradation_level >= 70 ? "#ef4444" : "#2563eb"
+        const fillColor = area.degradation_level != null && area.degradation_level >= 70 ? "#f87171" : "#3b82f6"
+
+        L.circleMarker([area.location_lat, area.location_lng], {
+          radius: 6,
+          color,
+          weight: 2,
+          fillColor,
+          fillOpacity: 0.9,
+        })
+          .bindPopup(
+            `<strong>${area.name ?? "Land Area"}</strong>$${
+              area.degradation_level != null ? ` <br/>Degradation: ${area.degradation_level}` : ""
+            }`,
+          )
+          .addTo(markersLayer)
+      })
+
+      if (validPoints.length > 0) {
+        const bounds = L.latLngBounds(validPoints.map((a: any) => [a.location_lat, a.location_lng]))
+        map.fitBounds(bounds, { padding: [20, 20] })
+      } else {
+        map.setView([0, 0], 2)
+      }
+    }
+
+    syncMarkers()
+  }, [landAreas])
+
   return (
     <Card className="col-span-full">
       <CardHeader>
@@ -23,29 +109,8 @@ export function MapView({ landAreas = [] }: MapViewProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="relative h-96 w-full rounded-lg bg-muted overflow-hidden">
-          {/* Placeholder for map - will integrate real map in next steps */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Interactive map will display here</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {landAreas.length} land area{landAreas.length !== 1 ? "s" : ""} registered
-              </p>
-            </div>
-          </div>
-          {/* Simple visualization of land areas */}
-          {landAreas.map((area, index) => (
-            <div
-              key={area.id}
-              className="absolute w-3 h-3 rounded-full bg-primary animate-pulse"
-              style={{
-                left: `${20 + index * 15}%`,
-                top: `${30 + index * 10}%`,
-              }}
-              title={area.name}
-            />
-          ))}
+        <div className="relative h-96 w-full rounded-lg overflow-hidden">
+          <div ref={mapContainerRef} className="absolute inset-0" />
         </div>
       </CardContent>
     </Card>
